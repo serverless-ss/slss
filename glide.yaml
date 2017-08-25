@@ -6,3 +6,5 @@ import:
   version: ~1.10.31
   subpackages:
   - aws
+- package: github.com/pkg/errors
+  version: ~0.8.0
