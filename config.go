@@ -15,9 +15,26 @@ type awsConfig struct {
 	Region          string `json:"Region"`
 }
 
+// Shadowsocks configuration
+type shadowsocksConfig struct {
+	ServerAddr string `json:"server_addr"`
+	LocalAddr  string `json:"local_addr"`
+	Timeout    int    `json:"timeout"`
+	Method     string `json:"method"`
+	Password   string `json:"password"`
+}
+
+// LambdaShadowSocksConfig represents the configuration needed for lambda
+type LambdaShadowSocksConfig struct {
+	Addr     string `json:"addr"`
+	Method   string `json:"method"`
+	Password string `json:"password"`
+}
+
 // Config represents the project's configuration
 type Config struct {
-	AWS awsConfig `json:"AWS"`
+	AWS         awsConfig         `json:"AWS"`
+	Shadowsocks shadowsocksConfig `json:"shadowsocks"`
 }
 
 // LoadConfig loads the configuration object from a specified path

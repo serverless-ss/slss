@@ -3,5 +3,12 @@
     "access_key_id": "YOUR_AWS_ACCESS_KEY_ID",
     "secret_access_key": "YOUR_AWS_SECRET_ACCESS_KEY",
     "region": "YOUR_AWS_REGION"
+  },
+  "shadowsocks": {
+    "server_addr": "SERVER_ADDR",
+    "local_addr": "LOCAL_ADDR",
+    "timeout": 300,
+    "method": "aes-128-cfb",
+    "password": "PASSWORD"
   }
 }

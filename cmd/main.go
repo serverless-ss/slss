@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"os"
 
 	"github.com/serverless-ss/slss"
 )
@@ -18,13 +17,10 @@ func main() {
 
 	config, err := slss.LoadConfig(configFilePath)
 	if err != nil {
-		printErrorAndExit(err)
+		slss.PrintErrorAndExit(err)
 	}
 
 	fmt.Printf("config: %+v\n", config)
-}
 
-func printErrorAndExit(err error) {
-	fmt.Printf("%+v\n", err)
-	os.Exit(-1)
+	go slss.StartLocalClient(config)
 }
