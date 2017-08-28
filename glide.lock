@@ -1,8 +1,10 @@
-hash: 567ee50e5a98b54c0920d8828ec9e0a3a08db27ea1935fa95f08d861bc93df46
-updated: 2017-08-24T17:41:59.210075264+08:00
+hash: 980fc7c1821f69487dc2633c85e1b25cad270e86013e3b6f3a6f14ddb9ba3b0a
+updated: 2017-08-28T13:28:27.954496082+08:00
 imports:
+- name: github.com/apex/go-apex
+  version: 6e19883b04761c5930e32bf2f80e02ad0e3a1d4e
 - name: github.com/aws/aws-sdk-go
-  version: 85193e1d8a4a2df2f00ccdcd6a796673b1aec368
+  version: e63027ac6e05f6d4ae9f97ce0294d7468ca652da
   subpackages:
   - aws
 - name: github.com/pkg/errors
