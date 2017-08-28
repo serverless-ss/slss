@@ -10,14 +10,14 @@ import (
 
 // Amazon AWS configuration
 type awsConfig struct {
-	accessKeyID     string
-	secretAccessKey string
-	region          string
+	AccessKeyID     string `json:"access_key_id"`
+	SecretAccessKey string `json:"secret_access_key"`
+	Region          string `json:"Region"`
 }
 
 // Config represents the project's configuration
 type Config struct {
-	AWS *awsConfig
+	AWS awsConfig `json:"AWS"`
 }
 
 // LoadConfig loads the configuration object from a specified path
@@ -34,17 +34,17 @@ func LoadConfig(path string) (*Config, error) {
 	}
 
 	// Try to find AWS configuration from environment variables
-	if config.AWS.accessKeyID == "" {
-		config.AWS.accessKeyID = os.Getenv("AWS_ACCESS_KEY_ID")
+	if config.AWS.AccessKeyID == "" {
+		config.AWS.AccessKeyID = os.Getenv("AWS_ACCESS_KEY_ID")
 	}
-	if config.AWS.secretAccessKey == "" {
-		config.AWS.secretAccessKey = os.Getenv("AWS_SECRET_ACCESS_KEY")
+	if config.AWS.SecretAccessKey == "" {
+		config.AWS.SecretAccessKey = os.Getenv("AWS_SECRET_ACCESS_KEY")
 	}
-	if config.AWS.region == "" {
-		config.AWS.region = os.Getenv("AWS_REGION")
+	if config.AWS.Region == "" {
+		config.AWS.Region = os.Getenv("AWS_REGION")
 	}
 
-	if config.AWS.accessKeyID == "" || config.AWS.secretAccessKey == "" || config.AWS.region == "" {
+	if config.AWS.AccessKeyID == "" || config.AWS.SecretAccessKey == "" || config.AWS.Region == "" {
 		return nil, errors.New("empty AWS configuration")
 	}
 

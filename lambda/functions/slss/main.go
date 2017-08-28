@@ -8,6 +8,6 @@ import (
 
 func main() {
 	apex.HandleFunc(func(event json.RawMessage, ctx *apex.Context) (interface{}, error) {
-		return nil, nil
+		return "Hello, slss", nil
 	})
 }

@@ -1,5 +1,7 @@
 {
-  "AWS_ACCESS_KEY_ID": "YOUR_AWS_ACCESS_KEY_ID",
-  "AWS_SECRET_ACCESS_KEY": "YOUR_AWS_SECRET_ACCESS_KEY",
-  "AWS_REGION": "YOUR_AWS_REGION"
+  "AWS": {
+    "access_key_id": "YOUR_AWS_ACCESS_KEY_ID",
+    "secret_access_key": "YOUR_AWS_SECRET_ACCESS_KEY",
+    "region": "YOUR_AWS_REGION"
+  }
 }
