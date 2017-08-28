@@ -1,15 +1,15 @@
 package slss
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net"
-	"os/exec"
 )
 
-const commandTemplate = "'%v' | apex invoke slss"
+const (
+	commandTemplate = "'%v' | apex invoke slss"
+)
 
 func requestRemote(config *Config) {
 	lambdaMessage, err := json.Marshal(LambdaShadowSocksConfig{
@@ -22,13 +22,9 @@ func requestRemote(config *Config) {
 		PrintErrorAndExit(err)
 	}
 
-	cmd := exec.Command(fmt.Sprintf(commandTemplate, lambdaMessage))
+	executor := &APEXCommandExecutor{Config: config}
 
-	var responseMessage bytes.Buffer
-	cmd.Stdout = &responseMessage
-	cmd.Path = "./lambda"
-
-	if err := cmd.Run(); err != nil {
+	if _, err = executor.Exec(fmt.Sprintf(commandTemplate, lambdaMessage)); err != nil {
 		PrintErrorAndExit(err)
 	}
 }
