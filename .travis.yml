@@ -1,0 +1,12 @@
+sudo: false
+language: go
+go:
+  - 1.7
+  - 1.8
+  - 1.9
+before_install:
+  - curl https://glide.sh/get | sh
+  - glide install
+script:
+  - go test -coverprofile=slss.coverprofile
+  - goveralls -coverprofile=slss.coverprofile -service=travis-ci
