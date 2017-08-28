@@ -5,8 +5,8 @@ go:
   - 1.8
   - 1.9
 before_install:
-  - curl https://glide.sh/get | sh
-  - glide install
+  - go get -t -v ./...
+  - go get github.com/mattn/goveralls
 script:
   - go test -coverprofile=slss.coverprofile
   - goveralls -coverprofile=slss.coverprofile -service=travis-ci
