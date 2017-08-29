@@ -1,18 +1,33 @@
 'use strict'
 const { execFile } = require('child_process')
 
-const DELAY = 2147483647
+const MAX_DELAY = 2147483647
+const EVENT_REQUIRED_KEYS = ['addr', 'method', 'password']
 
 exports.slss = function (event, context, callback) {
-  // Keep event loop rolling
-  setTimeout(noop, DELAY)
+  if (validateEvent(event)) printEvent(event)
+  else return callback(new Error(`Invalid event: ${JSON.stringify(event)}`))
 
-  execFile('shadowsocks-server', [], function (err, stdout, stderr) {
+  // Keep event loop rolling
+  setTimeout(noop, MAX_DELAY)
+
+  execFile('./bin/shadowsocks_server', [], function (err, stdout, stderr) {
     if (err) return callback(err)
   })
 
   // TODO: call server binary
   callback(null, {})
+}
+
+function validateEvent (event) {
+  for (const key of EVENT_REQUIRED_KEYS) if (!event[key]) return false
+  return true
+}
+
+function printEvent (event) {
+  console.log('--------------- event ---------------')
+  console.log(JSON.stringify(event))
+  console.log('-------------------------------------')
 }
 
 function noop () {}
