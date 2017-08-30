@@ -18,7 +18,8 @@ type awsConfig struct {
 // Shadowsocks configuration
 type shadowsocksConfig struct {
 	ServerAddr string `json:"server_addr"`
-	LocalAddr  string `json:"local_addr"`
+	ServerPort string `json:"server_port"`
+	LocalPort  string `json:"local_port"`
 	Timeout    int    `json:"timeout"`
 	Method     string `json:"method"`
 	Password   string `json:"password"`
@@ -35,6 +36,35 @@ type LambdaShadowSocksConfig struct {
 type Config struct {
 	AWS         awsConfig         `json:"AWS"`
 	Shadowsocks shadowsocksConfig `json:"shadowsocks"`
+}
+
+// FuncConfig represents the slss lambda function configuration
+type FuncConfig struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Runtime     string `json:"runtime"`
+	Memory      int    `json:"memory"`
+	Timeout     int    `json:"timeout"`
+}
+
+// LoadFuncConfig loads the lambda function configuration from a specified path
+func LoadFuncConfig(path string) (*FuncConfig, error) {
+	var config = new(FuncConfig)
+
+	content, err := ioutil.ReadFile(path)
+	if err != nil {
+		return nil, errors.Wrap(err, "read func configuration file failed")
+	}
+
+	if err := json.Unmarshal(content, config); err != nil {
+		return nil, errors.Wrap(err, "unmarshal func configuration file's content failed")
+	}
+
+	if config.Timeout < 60 {
+		return nil, errors.New("timeout in function configuration should >= 60")
+	}
+
+	return config, nil
 }
 
 // LoadConfig loads the configuration object from a specified path

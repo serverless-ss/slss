@@ -2,7 +2,7 @@
 const { execFile } = require('child_process')
 
 const MAX_DELAY = 2147483647
-const EVENT_REQUIRED_KEYS = ['addr', 'method', 'password']
+const EVENT_REQUIRED_KEYS = ['port', 'method', 'password']
 
 exports.slss = function (event, context, callback) {
   if (validateEvent(event)) printEvent(event)
@@ -14,7 +14,7 @@ exports.slss = function (event, context, callback) {
   const ssOptions = [
     `-k ${event.password}`,
     `-m ${event.method}`,
-    `-p ${event.addr}`
+    `-p ${event.port}`
   ]
 
   execFile('./bin/shadowsocks_server', ssOptions, function (err, stdout, stderr) {

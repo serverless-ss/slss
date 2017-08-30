@@ -15,3 +15,4 @@
 vendor/
 lambda/functions/slss/bin/
 shadowsocks-go/
+bin/

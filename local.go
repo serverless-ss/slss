@@ -3,13 +3,37 @@ package slss
 import (
 	"encoding/json"
 	"fmt"
-	"log"
-	"net"
+	"os/exec"
+	"time"
 )
 
 const (
-	commandTemplate = "'%v' | apex invoke slss"
+	commandTemplate            = "'%v' | apex invoke slss"
+	localCliServerAddrTemplate = "-s %v"
+	localCliPasswordTemplate   = "-k %v"
+	localCliServerPortTemplate = "-p %v"
+	localCliLocalPortTemplate  = "-l %v"
 )
+
+// Init starts the slss
+func Init(config *Config, funcConfig *FuncConfig) {
+	interval, err := time.ParseDuration(fmt.Sprintf("%vs", funcConfig.Timeout-10))
+	if err != nil {
+		PrintErrorAndExit(err)
+	}
+
+	var localCliCmd *exec.Cmd
+
+	for range time.Tick(interval) {
+		if localCliCmd != nil {
+			if err := localCliCmd.Process.Kill(); err != nil {
+				PrintErrorAndExit(err)
+			}
+		}
+
+		localCliCmd = StartLocalClient(config)
+	}
+}
 
 func requestRemote(config *Config) {
 	lambdaMessage, err := json.Marshal(LambdaShadowSocksConfig{
@@ -29,24 +53,19 @@ func requestRemote(config *Config) {
 	}
 }
 
-func handleConnection(conn net.Conn) {
-	defer conn.Close()
-}
-
 // StartLocalClient starts a slss client
-func StartLocalClient(config *Config) {
-	listener, err := net.Listen("tcp", config.Shadowsocks.LocalAddr)
-	if err != nil {
+func StartLocalClient(config *Config) *exec.Cmd {
+	cmd := exec.Command(
+		"./bin/shadowsocks_local",
+		fmt.Sprintf(localCliServerAddrTemplate, config.Shadowsocks.ServerAddr),
+		fmt.Sprintf(localCliServerPortTemplate, config.Shadowsocks.ServerPort),
+		fmt.Sprintf(localCliLocalPortTemplate, config.Shadowsocks.LocalPort),
+		fmt.Sprintf(localCliPasswordTemplate, config.Shadowsocks.Password),
+	)
+
+	if err := cmd.Start(); err != nil {
 		PrintErrorAndExit(err)
 	}
 
-	for {
-		conn, err := listener.Accept()
-		if err != nil {
-			log.Println(err)
-			continue
-		}
-
-		go handleConnection(conn)
-	}
+	return cmd
 }

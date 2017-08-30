@@ -15,5 +15,6 @@ ensure_shadowsocks:
 	@mkdir -p ./lambda/bin
 	@ls shadowsocks-go $(ignore_output) || $(get_shadowsocks)
 	GOOS=linux GOARCH=amd64 go build -o ./lambda/functions/slss/bin/shadowsocks_server ./shadowsocks-go/cmd/shadowsocks-server
+	go build -o ./bin/shadowsocks_local ./shadowsocks-go/cmd/shadowsocks-local
 
 .PHONY: test ensure_apex ensure_shadowsocks
