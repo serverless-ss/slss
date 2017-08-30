@@ -1,4 +1,4 @@
 {
-  "name": "slss",
-  "description": "slss cloud functions"
+  "name": "slss-lambda",
+  "description": "slss AWS Lambda functions"
 }

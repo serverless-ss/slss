@@ -1,0 +1,7 @@
+{
+  "name": "slss",
+  "description": "slss lambda server function",
+  "runtime": "nodejs6.10",
+  "memory": 128,
+  "timeout": 300
+}

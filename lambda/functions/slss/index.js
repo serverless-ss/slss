@@ -11,12 +11,17 @@ exports.slss = function (event, context, callback) {
   // Keep event loop rolling
   setTimeout(noop, MAX_DELAY)
 
-  execFile('./bin/shadowsocks_server', [], function (err, stdout, stderr) {
-    if (err) return callback(err)
-  })
+  const ssOptions = [
+    `-k ${event.password}`,
+    `-m ${event.method}`,
+    `-p ${event.addr}`
+  ]
 
-  // TODO: call server binary
-  callback(null, {})
+  execFile('./bin/shadowsocks_server', ssOptions, function (err, stdout, stderr) {
+    if (err) return callback(err)
+
+    callback(null, event)
+  })
 }
 
 function validateEvent (event) {
