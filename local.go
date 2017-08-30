@@ -22,16 +22,11 @@ func Init(config *Config, funcConfig *FuncConfig) {
 		PrintErrorAndExit(err)
 	}
 
-	var localCliCmd *exec.Cmd
+	localCliCmd := StartLocalClient(config)
+	defer localCliCmd.Process.Kill()
 
 	for range time.Tick(interval) {
-		if localCliCmd != nil {
-			if err := localCliCmd.Process.Kill(); err != nil {
-				PrintErrorAndExit(err)
-			}
-		}
-
-		localCliCmd = StartLocalClient(config)
+		go requestRemote(config)
 	}
 }
 
