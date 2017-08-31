@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+
+	"github.com/pkg/errors"
 )
 
 const (
@@ -33,7 +35,7 @@ func (a *APEXCommandExecutor) Exec(command string) (string, error) {
 	)
 
 	if err := cmd.Run(); err != nil {
-		return "", err
+		return "", errors.Wrap(err, "APEX command failed")
 	}
 
 	return responseMessage.String(), nil

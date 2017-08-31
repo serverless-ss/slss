@@ -5,10 +5,13 @@ import (
 	"fmt"
 	"os/exec"
 	"time"
+
+	"github.com/pkg/errors"
 )
 
 const (
-	commandTemplate            = "'%v' | apex invoke slss"
+	requestCommandTemplate     = "echo '%v' | apex invoke slss"
+	deployCommand              = "apex deploy slss"
 	localCliServerAddrTemplate = "-s %v"
 	localCliPasswordTemplate   = "-k %v"
 	localCliServerPortTemplate = "-p %v"
@@ -22,34 +25,30 @@ func Init(config *Config, funcConfig *FuncConfig) {
 		PrintErrorAndExit(err)
 	}
 
-	localCliCmd := StartLocalClient(config)
-	defer localCliCmd.Process.Kill()
+	apexExecutor := &APEXCommandExecutor{Config: config}
 
-	for range time.Tick(interval) {
-		go requestRemote(config)
+	if err := UploadFunc(apexExecutor); err != nil {
+		PrintErrorAndExit(err)
 	}
-}
 
-func requestRemote(config *Config) {
-	lambdaMessage, err := json.Marshal(LambdaShadowSocksConfig{
-		Addr:     config.Shadowsocks.ServerAddr,
-		Method:   config.Shadowsocks.Method,
-		Password: config.Shadowsocks.Password,
-	})
-
+	localCliCmd, err := StartLocalClient(config)
 	if err != nil {
 		PrintErrorAndExit(err)
 	}
 
-	executor := &APEXCommandExecutor{Config: config}
+	defer localCliCmd.Process.Kill()
 
-	if _, err = executor.Exec(fmt.Sprintf(commandTemplate, lambdaMessage)); err != nil {
-		PrintErrorAndExit(err)
+	for range time.Tick(interval) {
+		go func() {
+			if err := RequestRemoteFunc(apexExecutor); err != nil {
+				PrintErrorAndExit(err)
+			}
+		}()
 	}
 }
 
 // StartLocalClient starts a slss client
-func StartLocalClient(config *Config) *exec.Cmd {
+func StartLocalClient(config *Config) (*exec.Cmd, error) {
 	cmd := exec.Command(
 		"./bin/shadowsocks_local",
 		fmt.Sprintf(localCliServerAddrTemplate, config.Shadowsocks.ServerAddr),
@@ -59,8 +58,32 @@ func StartLocalClient(config *Config) *exec.Cmd {
 	)
 
 	if err := cmd.Start(); err != nil {
-		PrintErrorAndExit(err)
+		return nil, errors.Wrap(err, "start local client failed")
 	}
 
-	return cmd
+	return cmd, nil
+}
+
+// UploadFunc uploads the slss function to AWS lambda
+func UploadFunc(executor *APEXCommandExecutor) error {
+	_, err := executor.Exec(deployCommand)
+
+	return errors.Wrap(err, "upload remote function failed")
+}
+
+// RequestRemoteFunc sends a request to the slss function in AWS lambda
+func RequestRemoteFunc(executor *APEXCommandExecutor) error {
+	lambdaMessage, err := json.Marshal(LambdaShadowSocksConfig{
+		Addr:     executor.Config.Shadowsocks.ServerAddr,
+		Method:   executor.Config.Shadowsocks.Method,
+		Password: executor.Config.Shadowsocks.Password,
+	})
+
+	if err != nil {
+		return errors.Wrap(err, "marshal remote function event failed")
+	}
+
+	_, err = executor.Exec(fmt.Sprintf(requestCommandTemplate, lambdaMessage))
+
+	return errors.Wrap(err, "request remote function failed")
 }
