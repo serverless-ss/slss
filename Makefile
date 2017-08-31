@@ -17,4 +17,12 @@ ensure_shadowsocks:
 	GOOS=linux GOARCH=amd64 go build -o ./lambda/functions/slss/bin/shadowsocks_server ./shadowsocks-go/cmd/shadowsocks-server
 	go build -o ./bin/shadowsocks_local ./shadowsocks-go/cmd/shadowsocks-local
 
-.PHONY: test ensure_apex ensure_shadowsocks
+install: ensure_apex ensure_shadowsocks
+	go build -o ./bin/slss ./cmd/main.go
+
+clean_up:
+	@rm -rf ./bin
+	@rm -rf ./shadowsocks-go
+	@rm -rf ./lambda/functions/slss/bin
+
+.PHONY: test ensure_apex ensure_shadowsocks install clean_up
