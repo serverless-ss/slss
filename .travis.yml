@@ -5,6 +5,7 @@ go:
   - 1.8
   - 1.9
 before_install:
+  - curl https://raw.githubusercontent.com/apex/apex/master/install.sh | sh
   - go get -t -v ./...
   - go get github.com/mattn/goveralls
 script:

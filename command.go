@@ -26,7 +26,13 @@ func (a *APEXCommandExecutor) Exec(command string) (string, error) {
 
 	cmd := exec.Command(command)
 	cmd.Stdout = &responseMessage
-	cmd.Path = "./lambda"
+
+	wd, err := os.Getwd()
+	if err != nil {
+		return "", errors.Wrap(err, "get working dir failed")
+	}
+
+	cmd.Dir = wd + "/lambda/"
 	cmd.Env = append(
 		os.Environ(),
 		fmt.Sprintf(awsAccessKeyIDTemplate, a.Config.AWS.AccessKeyID),
