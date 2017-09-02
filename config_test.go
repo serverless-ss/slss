@@ -25,6 +25,17 @@ func (s *ConfigSuite) TestLoadConfig() {
 	s.Equal(config.Shadowsocks.Password, "PASSWORD")
 }
 
+func (s *ConfigSuite) TestLoadFuncConfig() {
+	config, err := LoadFuncConfig("./lambda/functions/slss/function.json")
+
+	s.Nil(err)
+	s.Equal(config.Name, "slss")
+	s.Equal(config.Description, "slss lambda server function")
+	s.Equal(config.Runtime, "nodejs6.10")
+	s.Equal(config.Memory, 128)
+	s.Equal(config.Timeout, 300)
+}
+
 func TestConfig(t *testing.T) {
 	suite.Run(t, new(ConfigSuite))
 }
