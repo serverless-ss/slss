@@ -21,11 +21,15 @@ type APEXCommandExecutor struct {
 }
 
 // Exec executes the specified APEX command
-func (a *APEXCommandExecutor) Exec(command string) (string, error) {
-	var responseMessage bytes.Buffer
+func (a *APEXCommandExecutor) Exec(command string, args ...string) (string, error) {
+	var (
+		responseMessage bytes.Buffer
+		errorMessage    bytes.Buffer
+	)
 
-	cmd := exec.Command(command)
+	cmd := exec.Command(command, args...)
 	cmd.Stdout = &responseMessage
+	cmd.Stderr = &errorMessage
 
 	wd, err := os.Getwd()
 	if err != nil {
@@ -40,8 +44,12 @@ func (a *APEXCommandExecutor) Exec(command string) (string, error) {
 		fmt.Sprintf(awsRegionTemplate, a.Config.AWS.Region),
 	)
 
-	if err := cmd.Run(); err != nil {
-		return "", errors.Wrap(err, "APEX command failed")
+	if err := cmd.Start(); err != nil {
+		return "", errors.Wrapf(err, "APEX commend failed: \n%v", errorMessage.String())
+	}
+
+	if err := cmd.Wait(); err != nil {
+		return "", errors.Wrapf(err, "APEX commend failed: \n%v", errorMessage.String())
 	}
 
 	return responseMessage.String(), nil

@@ -66,7 +66,7 @@ func StartLocalClient(config *Config) (*exec.Cmd, error) {
 
 // UploadFunc uploads the slss function to AWS lambda
 func UploadFunc(executor *APEXCommandExecutor) error {
-	_, err := executor.Exec(deployCommand)
+	_, err := executor.Exec("apex", "deploy", "slss")
 
 	return errors.Wrap(err, "upload remote function failed")
 }
