@@ -52,9 +52,8 @@ func start(proxyType string, port string) (string, error) {
 		}
 
 		i := strings.LastIndex(output, "tcp://")
-		e := strings.Index(output[i:], " ")
 
-		return output[i : i+e], nil
+		return output[i : i+strings.Index(output[i:], " ")], nil
 	}
 
 	return "", errors.New("unreachable")

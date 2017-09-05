@@ -13,7 +13,7 @@ type CommandSuite struct {
 
 func (s *CommandSuite) SetupTest() {
 	s.APEXExecutor = &APEXCommandExecutor{Config: &Config{
-		AWS: awsConfig{
+		AWS: &awsConfig{
 			AccessKeyID:     "KEY_ID",
 			SecretAccessKey: "SECRET",
 			Region:          "REGION",

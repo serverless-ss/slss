@@ -33,7 +33,7 @@ func (a *APEXCommandExecutor) Exec(command string, args ...string) (string, erro
 
 	wd, err := os.Getwd()
 	if err != nil {
-		return "", errors.Wrap(err, "get working dir failed")
+		return "", errors.WithStack(err)
 	}
 
 	cmd.Dir = wd + "/lambda/"

@@ -3,6 +3,7 @@ package slss
 import (
 	"encoding/json"
 	"fmt"
+	"net"
 	"os/exec"
 	"time"
 
@@ -30,6 +31,11 @@ func Init(config *Config, funcConfig *FuncConfig) {
 		PrintErrorAndExit(err)
 	}
 
+	proxyAddr, err := StartNgrokProxy(config.Ngrok, ProxyProtoTCP, config.Shadowsocks.LocalPort)
+	if err != nil {
+		PrintErrorAndExit(err)
+	}
+
 	localCliCmd, err := StartLocalClient(config)
 	if err != nil {
 		PrintErrorAndExit(err)
@@ -39,7 +45,7 @@ func Init(config *Config, funcConfig *FuncConfig) {
 
 	for range time.Tick(interval) {
 		go func() {
-			if err := RequestRemoteFunc(apexExecutor); err != nil {
+			if err := RequestRemoteFunc(apexExecutor, proxyAddr); err != nil {
 				PrintErrorAndExit(err)
 			}
 		}()
@@ -57,7 +63,7 @@ func StartLocalClient(config *Config) (*exec.Cmd, error) {
 	)
 
 	if err := cmd.Start(); err != nil {
-		return nil, errors.Wrap(err, "start local client failed")
+		return nil, errors.WithStack(err)
 	}
 
 	return cmd, nil
@@ -67,22 +73,29 @@ func StartLocalClient(config *Config) (*exec.Cmd, error) {
 func UploadFunc(executor *APEXCommandExecutor) error {
 	_, err := executor.Exec("apex", "deploy", "slss")
 
-	return errors.Wrap(err, "upload remote function failed")
+	return errors.WithStack(err)
 }
 
 // RequestRemoteFunc sends a request to the slss function in AWS lambda
-func RequestRemoteFunc(executor *APEXCommandExecutor) error {
+func RequestRemoteFunc(executor *APEXCommandExecutor, proxyAddr string) error {
+	proxyHost, proxyPort, err := net.SplitHostPort(proxyAddr)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
 	lambdaMessage, err := json.Marshal(LambdaShadowSocksConfig{
-		Addr:     executor.Config.Shadowsocks.ServerAddr,
-		Method:   executor.Config.Shadowsocks.Method,
-		Password: executor.Config.Shadowsocks.Password,
+		Addr:      executor.Config.Shadowsocks.ServerAddr,
+		Method:    executor.Config.Shadowsocks.Method,
+		Password:  executor.Config.Shadowsocks.Password,
+		ProxyHost: proxyHost,
+		ProxyPort: proxyPort,
 	})
 
 	if err != nil {
-		return errors.Wrap(err, "marshal remote function event failed")
+		return errors.WithStack(err)
 	}
 
 	_, err = executor.Exec(fmt.Sprintf(requestCommandTemplate, lambdaMessage))
 
-	return errors.Wrap(err, "request remote function failed")
+	return errors.WithStack(err)
 }

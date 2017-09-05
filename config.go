@@ -31,16 +31,18 @@ type ngrokConfig struct {
 
 // LambdaShadowSocksConfig represents the configuration needed for lambda
 type LambdaShadowSocksConfig struct {
-	Addr     string `json:"addr"`
-	Method   string `json:"method"`
-	Password string `json:"password"`
+	Addr      string `json:"addr"`
+	Method    string `json:"method"`
+	Password  string `json:"password"`
+	ProxyHost string `json:"proxyHost"`
+	ProxyPort string `json:"proxyPort"`
 }
 
 // Config represents the project's configuration
 type Config struct {
-	AWS         awsConfig         `json:"AWS"`
-	Shadowsocks shadowsocksConfig `json:"shadowsocks"`
-	Ngrok       ngrokConfig       `json:"ngrok"`
+	AWS         *awsConfig         `json:"AWS"`
+	Shadowsocks *shadowsocksConfig `json:"shadowsocks"`
+	Ngrok       *ngrokConfig       `json:"ngrok"`
 }
 
 // FuncConfig represents the slss lambda function configuration
@@ -58,11 +60,11 @@ func LoadFuncConfig(path string) (*FuncConfig, error) {
 
 	content, err := ioutil.ReadFile(path)
 	if err != nil {
-		return nil, errors.Wrap(err, "read func configuration file failed")
+		return nil, errors.WithStack(err)
 	}
 
 	if err := json.Unmarshal(content, config); err != nil {
-		return nil, errors.Wrap(err, "unmarshal func configuration file's content failed")
+		return nil, errors.WithStack(err)
 	}
 
 	if config.Timeout < 60 {
@@ -78,11 +80,11 @@ func LoadConfig(path string) (*Config, error) {
 
 	content, err := ioutil.ReadFile(path)
 	if err != nil {
-		return nil, errors.Wrap(err, "read configuration file failed")
+		return nil, errors.WithStack(err)
 	}
 
 	if err := json.Unmarshal(content, config); err != nil {
-		return nil, errors.Wrap(err, "unmarshal configuration file's content failed")
+		return nil, errors.WithStack(err)
 	}
 
 	// Try to find AWS configuration from environment variables
