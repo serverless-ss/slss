@@ -28,14 +28,14 @@ func StartNgrokProxy(config *ngrokConfig, protoType string, port string) (string
 }
 
 func authNgrok(authToken string) error {
-	cmd := exec.Command(ngrokBinPath, "auth", authToken)
+	cmd := exec.Command(ngrokBinPath, "authtoken", authToken)
 	return cmd.Run()
 }
 
 func start(proxyType string, port string) (string, error) {
 	var responseMessage bytes.Buffer
 
-	cmd := exec.Command(ngrokBinPath, proxyType, port, "-log=stdout", "--log-level=debug", "--region ap")
+	cmd := exec.Command(ngrokBinPath, proxyType, port, "-log=stdout", "--log-level=debug", "--region=ap")
 	cmd.Stdout = &responseMessage
 
 	if err := cmd.Start(); err != nil {
@@ -46,13 +46,14 @@ func start(proxyType string, port string) (string, error) {
 
 	for range time.Tick(time.Second) {
 		output := responseMessage.String()
-		if !strings.Contains(output, "tcp.ngrok.io") {
+
+		if !strings.Contains(output, "tcp://") {
 			continue
 		}
 
 		i := strings.LastIndex(output, "tcp://")
 
-		return output[i : i+strings.Index(output[i:], " ")], nil
+		return output[i+len("tcp://") : i+strings.Index(output[i:], " ")], nil
 	}
 
 	return "", errors.New("unreachable")

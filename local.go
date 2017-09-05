@@ -1,6 +1,7 @@
 package slss
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"net"
@@ -11,7 +12,6 @@ import (
 )
 
 const (
-	requestCommandTemplate     = "echo '%v' | apex invoke slss"
 	localCliServerAddrTemplate = "-s %v"
 	localCliPasswordTemplate   = "-k %v"
 	localCliServerPortTemplate = "-p %v"
@@ -27,15 +27,19 @@ func Init(config *Config, funcConfig *FuncConfig) {
 
 	apexExecutor := &APEXCommandExecutor{Config: config}
 
+	fmt.Println("[slss] Uploading lambda function...")
 	if err := UploadFunc(apexExecutor); err != nil {
 		PrintErrorAndExit(err)
 	}
 
+	fmt.Println("[slss] Creating ngrox proxy...")
 	proxyAddr, err := StartNgrokProxy(config.Ngrok, ProxyProtoTCP, config.Shadowsocks.LocalPort)
 	if err != nil {
 		PrintErrorAndExit(err)
 	}
+	fmt.Println("[slss] Ngrox address: ", proxyAddr)
 
+	fmt.Println("[slss] Starting ss client...")
 	localCliCmd, err := StartLocalClient(config, proxyAddr)
 	if err != nil {
 		PrintErrorAndExit(err)
@@ -43,12 +47,10 @@ func Init(config *Config, funcConfig *FuncConfig) {
 
 	defer localCliCmd.Process.Kill()
 
+	requestLambda(apexExecutor, proxyAddr)
+
 	for range time.Tick(interval) {
-		go func() {
-			if err := RequestRemoteFunc(apexExecutor, proxyAddr); err != nil {
-				PrintErrorAndExit(err)
-			}
-		}()
+		requestLambda(apexExecutor, proxyAddr)
 	}
 }
 
@@ -76,9 +78,18 @@ func StartLocalClient(config *Config, proxyAddr string) (*exec.Cmd, error) {
 
 // UploadFunc uploads the slss function to AWS lambda
 func UploadFunc(executor *APEXCommandExecutor) error {
-	_, err := executor.Exec("apex", "deploy", "slss")
+	_, err := executor.Exec("apex", nil, "deploy", "slss")
 
 	return errors.WithStack(err)
+}
+
+func requestLambda(executor *APEXCommandExecutor, proxyAddr string) {
+	go func() {
+		fmt.Println("[slss] Requesting lambda function")
+		if err := RequestRemoteFunc(executor, proxyAddr); err != nil {
+			PrintErrorAndExit(err)
+		}
+	}()
 }
 
 // RequestRemoteFunc sends a request to the slss function in AWS lambda
@@ -100,7 +111,7 @@ func RequestRemoteFunc(executor *APEXCommandExecutor, proxyAddr string) error {
 		return errors.WithStack(err)
 	}
 
-	_, err = executor.Exec(fmt.Sprintf(requestCommandTemplate, lambdaMessage))
+	_, err = executor.Exec("apex", bytes.NewBufferString("'"+string(lambdaMessage)+"'"), "invoke", "slss")
 
 	return errors.WithStack(err)
 }

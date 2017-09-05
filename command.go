@@ -21,13 +21,16 @@ type APEXCommandExecutor struct {
 }
 
 // Exec executes the specified APEX command
-func (a *APEXCommandExecutor) Exec(command string, args ...string) (string, error) {
+func (a *APEXCommandExecutor) Exec(command string, stdin *bytes.Buffer, args ...string) (string, error) {
 	var (
 		responseMessage bytes.Buffer
 		errorMessage    bytes.Buffer
 	)
 
 	cmd := exec.Command(command, args...)
+	if stdin != nil {
+		cmd.Stdin = stdin
+	}
 	cmd.Stdout = &responseMessage
 	cmd.Stderr = &errorMessage
 
