@@ -36,7 +36,7 @@ func Init(config *Config, funcConfig *FuncConfig) {
 		PrintErrorAndExit(err)
 	}
 
-	localCliCmd, err := StartLocalClient(config)
+	localCliCmd, err := StartLocalClient(config, proxyAddr)
 	if err != nil {
 		PrintErrorAndExit(err)
 	}
@@ -53,11 +53,16 @@ func Init(config *Config, funcConfig *FuncConfig) {
 }
 
 // StartLocalClient starts a slss client
-func StartLocalClient(config *Config) (*exec.Cmd, error) {
+func StartLocalClient(config *Config, proxyAddr string) (*exec.Cmd, error) {
+	host, port, err := net.SplitHostPort(proxyAddr)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
 	cmd := exec.Command(
 		"./bin/shadowsocks_local",
-		fmt.Sprintf(localCliServerAddrTemplate, config.Shadowsocks.ServerAddr),
-		fmt.Sprintf(localCliServerPortTemplate, config.Shadowsocks.ServerPort),
+		fmt.Sprintf(localCliServerAddrTemplate, host),
+		fmt.Sprintf(localCliServerPortTemplate, port),
 		fmt.Sprintf(localCliLocalPortTemplate, config.Shadowsocks.LocalPort),
 		fmt.Sprintf(localCliPasswordTemplate, config.Shadowsocks.Password),
 	)

@@ -35,8 +35,7 @@ func authNgrok(authToken string) error {
 func start(proxyType string, port string) (string, error) {
 	var responseMessage bytes.Buffer
 
-	cmd := exec.Command(ngrokBinPath, proxyType, port, "-log=stdout", "--log-level=debug")
-
+	cmd := exec.Command(ngrokBinPath, proxyType, port, "-log=stdout", "--log-level=debug", "--region ap")
 	cmd.Stdout = &responseMessage
 
 	if err := cmd.Start(); err != nil {
