@@ -25,6 +25,10 @@ type shadowsocksConfig struct {
 	Password   string `json:"password"`
 }
 
+type ngrokConfig struct {
+	AuthToken string `json:"auth_token"`
+}
+
 // LambdaShadowSocksConfig represents the configuration needed for lambda
 type LambdaShadowSocksConfig struct {
 	Addr     string `json:"addr"`
@@ -36,6 +40,7 @@ type LambdaShadowSocksConfig struct {
 type Config struct {
 	AWS         awsConfig         `json:"AWS"`
 	Shadowsocks shadowsocksConfig `json:"shadowsocks"`
+	Ngrok       ngrokConfig       `json:"ngrok"`
 }
 
 // FuncConfig represents the slss lambda function configuration

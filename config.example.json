@@ -11,5 +11,8 @@
     "timeout": 300,
     "method": "aes-128-cfb",
     "password": "PASSWORD"
+  },
+  "ngrok": {
+    "auth_token": "YOUR_AUTH_TOKEN"
   }
 }

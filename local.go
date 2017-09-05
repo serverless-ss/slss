@@ -11,7 +11,6 @@ import (
 
 const (
 	requestCommandTemplate     = "echo '%v' | apex invoke slss"
-	deployCommand              = "apex deploy slss"
 	localCliServerAddrTemplate = "-s %v"
 	localCliPasswordTemplate   = "-k %v"
 	localCliServerPortTemplate = "-p %v"

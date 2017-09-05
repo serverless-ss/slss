@@ -17,3 +17,4 @@ lambda/functions/slss/bin/
 shadowsocks-go/
 bin/
 config.test.json
+ngrok/
