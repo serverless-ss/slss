@@ -22,7 +22,7 @@ func (s *CommandSuite) SetupTest() {
 }
 
 func (s *CommandSuite) TestAPEXCommandExecutorExec() {
-	output, err := s.APEXExecutor.Exec("apex")
+	output, err := s.APEXExecutor.Exec("apex", nil)
 	s.Nil(err)
 	s.Contains(output, "apex [command]")
 }
