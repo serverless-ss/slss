@@ -13,6 +13,7 @@ const (
 	awsAccessKeyIDTemplate     = "AWS_ACCESS_KEY_ID=%v"
 	awsSecretAccessKeyTemplate = "AWS_SECRET_ACCESS_KEY=%v"
 	awsRegionTemplate          = "AWS_REGION=%v"
+	commandErrorTemplate       = "APEX commend failed: \n%v"
 )
 
 // APEXCommandExecutor represents the APEX command executor
@@ -48,11 +49,11 @@ func (a *APEXCommandExecutor) Exec(command string, stdin *bytes.Buffer, args ...
 	)
 
 	if err := cmd.Start(); err != nil {
-		return "", errors.Wrapf(err, "APEX commend failed: \n%v", errorMessage.String())
+		return "", errors.Wrapf(err, commandErrorTemplate, errorMessage.String())
 	}
 
 	if err := cmd.Wait(); err != nil {
-		return "", errors.Wrapf(err, "APEX commend failed: \n%v", errorMessage.String())
+		return "", errors.Wrapf(err, commandErrorTemplate, errorMessage.String())
 	}
 
 	return responseMessage.String(), nil

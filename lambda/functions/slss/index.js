@@ -17,16 +17,10 @@ exports.handle = function (event, context, callback) {
   // Keep event loop rolling
   setTimeout(function () { callback(null) }, MAX_DELAY)
 
-  const ssOptions = [
-    '-k', event.password,
-    '-m', event.method,
-    '-p', event.port
-  ]
+  const ssOptions = ['-k', event.password, '-m', event.method, '-p', event.port]
   const server = spawn('./bin/shadowsocks_server', ssOptions)
 
-  const gostOptions = [
-    `-L=tcp://${event.proxyHost}:${event.proxyPort}/127.0.0.1:${event.port}`
-  ]
+  const gostOptions = [`-L=tcp://${event.proxyHost}:${event.proxyPort}/127.0.0.1:${event.port}`]
   const gost = spawn('./bin/gost', gostOptions)
 
   server.stdout.on('data', (data) => print('ss_server stdout', data.toString()))

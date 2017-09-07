@@ -2,9 +2,9 @@ package main
 
 import (
 	"flag"
-	"fmt"
 
 	"github.com/serverless-ss/slss"
+	log "github.com/sirupsen/logrus"
 )
 
 var (
@@ -25,8 +25,25 @@ func main() {
 		slss.PrintErrorAndExit(err)
 	}
 
-	fmt.Printf("config: %+v\n", config)
-	fmt.Printf("function config: %+v\n", funcConfig)
+	log.WithFields(log.Fields{
+		"AWS.access_key_id":       config.AWS.AccessKeyID,
+		"AWS.secret_access_key":   config.AWS.AccessKeyID,
+		"AWS.region":              config.AWS.Region,
+		"shadowsocks.server_addr": config.Shadowsocks.ServerAddr,
+		"shadowsocks.server_port": config.Shadowsocks.ServerPort,
+		"shadowsocks.local_port":  config.Shadowsocks.LocalPort,
+		"shadowsocks.timeout":     config.Shadowsocks.Timeout,
+		"shadowsocks.method":      config.Shadowsocks.Method,
+		"shadowsocks.password":    config.Shadowsocks.Password,
+		"ngrok.auth_token":        config.Ngrok.AuthToken,
+	}).Info("config")
+	log.WithFields(log.Fields{
+		"name":        funcConfig.Name,
+		"description": funcConfig.Description,
+		"runtime":     funcConfig.Runtime,
+		"memory":      funcConfig.Memory,
+		"timeout":     funcConfig.Timeout,
+	}).Info("lambda function config")
 
 	slss.Init(config, funcConfig)
 }

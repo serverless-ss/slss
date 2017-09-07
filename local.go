@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -27,19 +28,19 @@ func Init(config *Config, funcConfig *FuncConfig) {
 
 	apexExecutor := &APEXCommandExecutor{Config: config}
 
-	fmt.Println("[slss] Uploading lambda function...")
+	log.Info("[slss] Uploading lambda function...")
 	if err := UploadFunc(apexExecutor); err != nil {
 		PrintErrorAndExit(err)
 	}
 
-	fmt.Println("[slss] Creating ngrox proxy...")
+	log.Info("[slss] Creating ngrox proxy...")
 	proxyAddr, err := StartNgrokProxy(config.Ngrok, ProxyProtoTCP, config.Shadowsocks.LocalPort)
 	if err != nil {
 		PrintErrorAndExit(err)
 	}
-	fmt.Println("[slss] Ngrox address: ", proxyAddr)
+	log.Info("[slss] Ngrox address: ", proxyAddr)
 
-	fmt.Println("[slss] Starting ss client...")
+	log.Info("[slss] Starting ss client...")
 	localCliCmd, err := StartLocalClient(config, proxyAddr)
 	if err != nil {
 		PrintErrorAndExit(err)
@@ -85,7 +86,7 @@ func UploadFunc(executor *APEXCommandExecutor) error {
 
 func requestLambda(executor *APEXCommandExecutor, proxyAddr string) {
 	go func() {
-		fmt.Println("[slss] Requesting lambda function")
+		log.Info("[slss] Requesting lambda function")
 		if err := RequestRemoteFunc(executor, proxyAddr); err != nil {
 			PrintErrorAndExit(err)
 		}

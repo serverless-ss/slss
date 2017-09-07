@@ -87,6 +87,10 @@ func LoadConfig(path string) (*Config, error) {
 		return nil, errors.WithStack(err)
 	}
 
+	if config.AWS == nil || config.Ngrok == nil || config.Shadowsocks == nil {
+		return nil, errors.New("empty configuration")
+	}
+
 	// Try to find AWS configuration from environment variables
 	if config.AWS.AccessKeyID == "" {
 		config.AWS.AccessKeyID = os.Getenv("AWS_ACCESS_KEY_ID")
@@ -100,6 +104,10 @@ func LoadConfig(path string) (*Config, error) {
 
 	if config.AWS.AccessKeyID == "" || config.AWS.SecretAccessKey == "" || config.AWS.Region == "" {
 		return nil, errors.New("empty AWS configuration")
+	}
+
+	if config.Ngrok.AuthToken == "" {
+		return nil, errors.New("empty ngrok configuration")
 	}
 
 	return config, nil
