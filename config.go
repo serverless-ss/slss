@@ -31,7 +31,7 @@ type ngrokConfig struct {
 
 // LambdaShadowSocksConfig represents the configuration needed for lambda
 type LambdaShadowSocksConfig struct {
-	Addr      string `json:"addr"`
+	Port      string `json:"port"`
 	Method    string `json:"method"`
 	Password  string `json:"password"`
 	ProxyHost string `json:"proxyHost"`

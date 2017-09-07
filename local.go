@@ -100,7 +100,7 @@ func RequestRemoteFunc(executor *APEXCommandExecutor, proxyAddr string) error {
 	}
 
 	lambdaMessage, err := json.Marshal(LambdaShadowSocksConfig{
-		Addr:      executor.Config.Shadowsocks.ServerAddr,
+		Port:      executor.Config.Shadowsocks.ServerPort,
 		Method:    executor.Config.Shadowsocks.Method,
 		Password:  executor.Config.Shadowsocks.Password,
 		ProxyHost: proxyHost,
@@ -111,7 +111,7 @@ func RequestRemoteFunc(executor *APEXCommandExecutor, proxyAddr string) error {
 		return errors.WithStack(err)
 	}
 
-	_, err = executor.Exec("apex", bytes.NewBufferString("'"+string(lambdaMessage)+"'"), "invoke", "slss")
+	_, err = executor.Exec("apex", bytes.NewBufferString(string(lambdaMessage)), "invoke", "slss")
 
 	return errors.WithStack(err)
 }

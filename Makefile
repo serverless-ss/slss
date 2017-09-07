@@ -3,8 +3,7 @@ ignore_output = &> /dev/null
 
 # commands
 install_apex = curl https://raw.githubusercontent.com/apex/apex/master/install.sh | sh
-get_shadowsocks = git clone --depth 1  https://github.com/shadowsocks/shadowsocks-go
-get_ngrok = TODO
+get_shadowsocks = git clone --depth 1 https://github.com/shadowsocks/shadowsocks-go
 get_gost = git clone --depth 1 https://github.com/ginuerzh/gost.git
 
 test:
@@ -21,10 +20,7 @@ ensure_shadowsocks:
 
 ensure_gost:
 	@ls gost $(ignore_output) || $(get_gost)
-	go build -o ./bin/gost ./gost/cmd/gost/main.go
-
-ensure_ngrok:
-	@ls ngrok $(ignore_output) || $(get_ngrok)
+	GOOS=linux GOARCH=amd64 go build -o ./lambda/functions/slss/bin/gost ./gost/cmd/gost/main.go
 
 install: ensure_apex ensure_shadowsocks ensure_ngrok ensure_gost
 	go build -o ./bin/slss ./cmd/main.go
@@ -32,6 +28,7 @@ install: ensure_apex ensure_shadowsocks ensure_ngrok ensure_gost
 clean_up:
 	@rm -rf ./bin
 	@rm -rf ./shadowsocks-go
+	@rm -rf ./gost
 	@rm -rf ./lambda/functions/slss/bin
 
-.PHONY: test ensure_apex ensure_shadowsocks ensure_ngrok ensure_gost install clean_up
+.PHONY: test ensure_apex ensure_shadowsocks ensure_gost install clean_up
