@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net"
+	"net/http"
 	"os/exec"
 	"time"
 
@@ -80,7 +81,6 @@ func StartLocalClient(config *Config, proxyAddr string) (*exec.Cmd, error) {
 // UploadFunc uploads the slss function to AWS lambda
 func UploadFunc(executor *APEXCommandExecutor) error {
 	_, err := executor.Exec("apex", nil, "deploy", "slss")
-
 	return errors.WithStack(err)
 }
 
@@ -115,4 +115,20 @@ func RequestRemoteFunc(executor *APEXCommandExecutor, proxyAddr string) error {
 	_, err = executor.Exec("apex", bytes.NewBufferString(string(lambdaMessage)), "invoke", "slss")
 
 	return errors.WithStack(err)
+}
+
+// GetProxyAddrChan starts a local server for remote ss server proxy address
+func GetProxyAddrChan(config Config) chan string {
+	ch := make(chan string)
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		ssServerAddr := r.URL.Query().Get("ss_server_addr")
+		if ssServerAddr == "" {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		ch <- ssServerAddr
+	})
+
+	return ch
 }

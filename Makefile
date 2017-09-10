@@ -5,6 +5,7 @@ ignore_output = &> /dev/null
 install_apex = curl https://raw.githubusercontent.com/apex/apex/master/install.sh | sh
 get_shadowsocks = git clone --depth 1 https://github.com/shadowsocks/shadowsocks-go
 get_gost = git clone --depth 1 https://github.com/ginuerzh/gost.git
+get_ngrok = wget https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-darwin-amd64.zip && unzip ./ngrok-stable-darwin-amd64.zip && mv ngrok ./bin/ngrok && rm -rf ngrok-stable-darwin-amd64.zip
 
 test:
 	go test -v --race
@@ -22,8 +23,10 @@ ensure_gost:
 	@ls gost $(ignore_output) || $(get_gost)
 	GOOS=linux GOARCH=amd64 go build -o ./lambda/functions/slss/bin/gost ./gost/cmd/gost/main.go
 
-install: ensure_apex ensure_shadowsocks ensure_ngrok ensure_gost
-	go build -o ./bin/slss ./cmd/main.go
+ensure_ngrok:
+	@ls ./bin/ngrok $(ignore_output) || $(get_ngrok)
+
+ensure_all: ensure_apex ensure_shadowsocks ensure_gost ensure_ngrok
 
 clean_up:
 	@rm -rf ./bin
