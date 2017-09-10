@@ -1,5 +1,6 @@
 'use strict'
 const { spawn } = require('child_process')
+const http = require('http')
 
 const MAX_DELAY = 2147483647
 const EVENT_REQUIRED_KEYS = [
@@ -17,27 +18,15 @@ exports.handle = function (event, context, callback) {
   // Keep event loop rolling
   setTimeout(function () { callback(null) }, MAX_DELAY)
 
-  const ssOptions = [
-    '-k', event.password,
-    '-m', event.method,
-    '-p', event.port
-  ]
-  const server = spawn('./bin/shadowsocks_server', ssOptions)
+  const ssOptions = ['-k', event.password, '-m', event.method, '-p', event.port]
+  addLogging(spawn('./bin/shadowsocks_server', ssOptions), 'ss_server')
+  addLogging(spawn('./bin/ngrok', ['tcp', event.port]), 'ngrok')
 
-  const gostOptions = [
-    `-D`,
-    `-L=:${event.port}`,
-    `-F=tcp://${event.proxyHost}:${event.proxyPort}`
-  ]
-  const gost = spawn('./bin/gost', gostOptions)
-
-  server.stdout.on('data', (data) => print('ss_server stdout', data.toString()))
-  server.stderr.on('data', (data) => print('ss_server stderr', data.toString()))
-  server.on('close', (code) => callback(new Error(`ss_server close, code: ${code}`)))
-
-  gost.stdout.on('data', (data) => print('gost stdout', data.toString()))
-  gost.stderr.on('data', (data) => print('gost stderr', data.toString()))
-  gost.on('close', (code) => callback(new Error(`gost close, code: ${code}`)))
+  http.get(`http://${event.proxyHost}:${event.proxyPort}/`, function (res) {
+    if (res.statusCode !== 200) {
+      print('http_request', `bad status code error: ${res.statusCode}`)
+    }
+  })
 }
 
 function validateEvent (event) {
@@ -49,4 +38,12 @@ function print (name, event) {
   console.log(`--------------- ${name} ---------------`)
   console.log(JSON.stringify(event))
   console.log('---------------------------------------')
+}
+
+function addLogging (emitter, name) {
+  emitter.stdout.on('data', (data) => print(`${name} stdout`, data.toString()))
+  emitter.stderr.on('data', (data) => print(`${name} stderr`, data.toString()))
+  emitter.on('close', (code) => print(`${name} close`, code))
+
+  return emitter
 }

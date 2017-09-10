@@ -14,5 +14,6 @@
   },
   "ngrok": {
     "auth_token": "YOUR_AUTH_TOKEN"
-  }
+  },
+  "local_server_port": "YOUR_LOCAL_SERVER_PORT"
 }

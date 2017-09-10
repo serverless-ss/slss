@@ -34,25 +34,39 @@ func Init(config *Config, funcConfig *FuncConfig) {
 		PrintErrorAndExit(err)
 	}
 
+	remoteProxyAddrChan := GetProxyAddrChan(config)
+
 	log.Info("[slss] Creating ngrox proxy...")
-	proxyAddr, err := StartNgrokProxy(config.Ngrok, ProxyProtoTCP, config.Shadowsocks.LocalPort)
+	proxyAddr, err := StartNgrokProxy(config.Ngrok, ProxyProtoHTTP, config.LocalServerPort)
 	if err != nil {
 		PrintErrorAndExit(err)
 	}
 	log.Info("[slss] Ngrox address: ", proxyAddr)
 
-	log.Info("[slss] Starting ss client...")
-	localCliCmd, err := StartLocalClient(config, proxyAddr)
-	if err != nil {
-		PrintErrorAndExit(err)
-	}
+	go func() {
+		if err := RequestRemoteFunc(apexExecutor, proxyAddr); err != nil {
+			log.Errorln(err)
+		}
 
-	defer localCliCmd.Process.Kill()
+		for range time.Tick(interval) {
+			if err := RequestRemoteFunc(apexExecutor, proxyAddr); err != nil {
+				log.Errorln(err)
+			}
+		}
+	}()
 
-	requestLambda(apexExecutor, proxyAddr)
+	var localCliCmd *exec.Cmd
+	for remoteProxyAddr := range remoteProxyAddrChan {
+		if localCliCmd != nil {
+			if err := localCliCmd.Process.Kill(); err != nil {
+				PrintErrorAndExit(err)
+			}
+		}
 
-	for range time.Tick(interval) {
-		requestLambda(apexExecutor, proxyAddr)
+		localCliCmd, err = StartLocalClient(config, remoteProxyAddr)
+		if err != nil {
+			PrintErrorAndExit(err)
+		}
 	}
 }
 
@@ -84,15 +98,6 @@ func UploadFunc(executor *APEXCommandExecutor) error {
 	return errors.WithStack(err)
 }
 
-func requestLambda(executor *APEXCommandExecutor, proxyAddr string) {
-	go func() {
-		log.Info("[slss] Requesting lambda function")
-		if err := RequestRemoteFunc(executor, proxyAddr); err != nil {
-			PrintErrorAndExit(err)
-		}
-	}()
-}
-
 // RequestRemoteFunc sends a request to the slss function in AWS lambda
 func RequestRemoteFunc(executor *APEXCommandExecutor, proxyAddr string) error {
 	proxyHost, proxyPort, err := net.SplitHostPort(proxyAddr)
@@ -118,7 +123,7 @@ func RequestRemoteFunc(executor *APEXCommandExecutor, proxyAddr string) error {
 }
 
 // GetProxyAddrChan starts a local server for remote ss server proxy address
-func GetProxyAddrChan(config Config) chan string {
+func GetProxyAddrChan(config *Config) chan string {
 	ch := make(chan string)
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		ssServerAddr := r.URL.Query().Get("ss_server_addr")
@@ -129,6 +134,8 @@ func GetProxyAddrChan(config Config) chan string {
 
 		ch <- ssServerAddr
 	})
+
+	go http.ListenAndServe(config.LocalServerPort, nil)
 
 	return ch
 }

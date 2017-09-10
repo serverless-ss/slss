@@ -40,9 +40,10 @@ type LambdaShadowSocksConfig struct {
 
 // Config represents the project's configuration
 type Config struct {
-	AWS         *awsConfig         `json:"AWS"`
-	Shadowsocks *shadowsocksConfig `json:"shadowsocks"`
-	Ngrok       *ngrokConfig       `json:"ngrok"`
+	AWS             *awsConfig         `json:"AWS"`
+	Shadowsocks     *shadowsocksConfig `json:"shadowsocks"`
+	Ngrok           *ngrokConfig       `json:"ngrok"`
+	LocalServerPort string             `json:"local_server_port"`
 }
 
 // FuncConfig represents the slss lambda function configuration
