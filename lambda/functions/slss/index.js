@@ -26,6 +26,7 @@ exports.handle = function (event, context, callback) {
     if (res.statusCode !== 200) {
       print('http_request', `bad status code error: ${res.statusCode}`)
     }
+    print('http_request', 'success')
   })
 }
 
