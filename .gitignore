@@ -16,6 +16,5 @@ vendor/
 lambda/functions/slss/bin/
 shadowsocks-go/
 ngrok/
-gost/
 bin/
 config.test.json
