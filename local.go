@@ -57,6 +57,8 @@ func Init(config *Config, funcConfig *FuncConfig) {
 
 	var localCliCmd *exec.Cmd
 	for remoteProxyAddr := range remoteProxyAddrChan {
+		log.Info("[slss] remote proxy address : ", remoteProxyAddr)
+
 		if localCliCmd != nil {
 			if err := localCliCmd.Process.Kill(); err != nil {
 				PrintErrorAndExit(err)
@@ -100,17 +102,12 @@ func UploadFunc(executor *APEXCommandExecutor) error {
 
 // RequestRemoteFunc sends a request to the slss function in AWS lambda
 func RequestRemoteFunc(executor *APEXCommandExecutor, proxyAddr string) error {
-	proxyHost, proxyPort, err := net.SplitHostPort(proxyAddr)
-	if err != nil {
-		return errors.WithStack(err)
-	}
-
 	lambdaMessage, err := json.Marshal(LambdaShadowSocksConfig{
-		Port:      executor.Config.Shadowsocks.ServerPort,
-		Method:    executor.Config.Shadowsocks.Method,
-		Password:  executor.Config.Shadowsocks.Password,
-		ProxyHost: proxyHost,
-		ProxyPort: proxyPort,
+		Port:       executor.Config.Shadowsocks.ServerPort,
+		Method:     executor.Config.Shadowsocks.Method,
+		Password:   executor.Config.Shadowsocks.Password,
+		ProxyURL:   proxyAddr,
+		NgrokToken: executor.Config.Ngrok.AuthToken,
 	})
 
 	if err != nil {
@@ -136,6 +133,7 @@ func GetProxyAddrChan(config *Config) chan string {
 	})
 
 	go http.ListenAndServe(config.LocalServerPort, nil)
+	log.Info("[slss] Local addr chan listen at " + config.LocalServerPort)
 
 	return ch
 }

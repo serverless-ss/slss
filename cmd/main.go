@@ -36,14 +36,14 @@ func main() {
 		"shadowsocks.method":      config.Shadowsocks.Method,
 		"shadowsocks.password":    config.Shadowsocks.Password,
 		"ngrok.auth_token":        config.Ngrok.AuthToken,
-	}).Info("config")
+	}).Info("[slss] Config:")
 	log.WithFields(log.Fields{
 		"name":        funcConfig.Name,
 		"description": funcConfig.Description,
 		"runtime":     funcConfig.Runtime,
 		"memory":      funcConfig.Memory,
 		"timeout":     funcConfig.Timeout,
-	}).Info("lambda function config")
+	}).Info("[slss] Lambda function config:")
 
 	slss.Init(config, funcConfig)
 }

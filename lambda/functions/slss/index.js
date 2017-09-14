@@ -7,8 +7,7 @@ const EVENT_REQUIRED_KEYS = [
   'port',
   'method',
   'password',
-  'proxyHost',
-  'proxyPort',
+  'proxyURL',
   'ngrokToken'
 ]
 
@@ -19,20 +18,18 @@ exports.handle = function (event, context, callback) {
   // Keep event loop rolling
   setTimeout(function () { callback(null) }, MAX_DELAY)
 
-  addLogging(spawn('./bin/ngrok', ['authtoken', event.ngrokToken]), 'ngrok_auth')
-
   const ssOptions = ['-k', event.password, '-m', event.method, '-p', event.port]
   addLogging(spawn('./bin/shadowsocks_server', ssOptions), 'ss_server')
 
-  getNgrokAddress(addLogging(spawn('./bin/ngrok', ['tcp', event.port]), 'ngrok'))
-    .then(function (addr) {
-      http.get(`http://${event.proxyHost}:${event.proxyPort}/?ss_server_addr${addr}`, function (res) {
-        if (res.statusCode !== 200) {
-          print('http_request', `bad status code error: ${res.statusCode}`)
-        }
-        print('http_request', 'success')
+  addToken(event.ngrokToken)
+    .then(() => getNgrokAddress(event.port))
+    .then((addr) => {
+      http.get(`http://${event.proxyURL}/?ss_server_addr${addr}`, (res) => {
+        if (res.statusCode === 200) return print('http_request', 'success')
+        print('http_request', `bad status code error: ${res.statusCode}`)
       })
     })
+    .catch((error) => print('ngrok_error', error))
 }
 
 function validateEvent (event) {
@@ -54,9 +51,26 @@ function addLogging (emitter, name) {
   return emitter
 }
 
-function getNgrokAddress (ngrok) {
+function addToken (token) {
   return new Promise(function (resolve, reject) {
-    ngrok.on('data', function (data) {
+    const ngrok = addLogging(spawn('./bin/ngrok', ['authtoken', token]), 'ngrok_auth')
+
+    ngrok.stdout.on('data', resolve)
+    ngrok.stderr.on('data', reject)
+    ngrok.on('close', reject)
+  })
+}
+
+function getNgrokAddress (port) {
+  return new Promise(function (resolve, reject) {
+    const ngrok = addLogging(spawn('./bin/ngrok', [
+      'tcp', port,
+      '-log=stdout',
+      '--log-level=debug',
+      '--region=au'
+    ]), 'ngrok')
+
+    ngrok.stdout.on('data', function (data) {
       const dataString = data.toString()
       if (!dataString.includes('tcp://')) return
 
@@ -64,7 +78,7 @@ function getNgrokAddress (ngrok) {
 
       return resolve(dataString.slice(i + 'tcp://'.length, i + dataString.slice(i).indexOf(' ')))
     })
-
-    ngrok.on('error', reject)
+    ngrok.stderr.on('data', reject)
+    ngrok.on('close', reject)
   })
 }

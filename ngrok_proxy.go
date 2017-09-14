@@ -14,9 +14,9 @@ const (
 	ProxyProtoHTTP  = "http"
 	ProxyProtoHTTPS = "https"
 	ProxyProtoTCP   = "tcp"
-)
 
-const ngrokBinPath = "./bin/ngrok"
+	ngrokBinPath = "./bin/ngrok"
+)
 
 // StartNgrokProxy starts the ngrok proxy
 func StartNgrokProxy(config *ngrokConfig, protoType string, port string) (string, error) {
@@ -44,16 +44,16 @@ func start(proxyType string, port string) (string, error) {
 
 	go cmd.Wait()
 
+	var proxyTypePrefix = proxyType + "://"
 	for range time.Tick(time.Second) {
 		output := responseMessage.String()
-
-		if !strings.Contains(output, "tcp://") {
+		if !strings.Contains(output, proxyTypePrefix) {
 			continue
 		}
 
-		i := strings.LastIndex(output, "tcp://")
+		i := strings.LastIndex(output, proxyTypePrefix)
 
-		return output[i+len("tcp://") : i+strings.Index(output[i:], " ")], nil
+		return output[i+len(proxyTypePrefix) : i+strings.Index(output[i:], " ")], nil
 	}
 
 	return "", errors.New("unreachable")
