@@ -132,7 +132,11 @@ func GetProxyAddrChan(config *Config) chan string {
 		ch <- ssServerAddr
 	})
 
-	go http.ListenAndServe(config.LocalServerPort, nil)
+	go func() {
+		if err := http.ListenAndServe(":"+config.LocalServerPort, nil); err != nil {
+			log.Errorln(err)
+		}
+	}()
 	log.Info("[slss] Local addr chan listen at " + config.LocalServerPort)
 
 	return ch

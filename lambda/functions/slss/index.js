@@ -16,17 +16,16 @@ exports.handle = function (event, context, callback) {
   else return callback(new Error(`Invalid event: ${JSON.stringify(event)}`))
 
   // Keep event loop rolling
-  setTimeout(function () { callback(null) }, MAX_DELAY)
+  setTimeout(() => callback(null), MAX_DELAY)
 
   const ssOptions = ['-k', event.password, '-m', event.method, '-p', event.port]
   addLogging(spawn('./bin/shadowsocks_server', ssOptions), 'ss_server')
 
-  addToken(event.ngrokToken)
-    .then(() => getNgrokAddress(event.port))
+  getNgrokAddress(event.port, event.ngrokToken)
     .then((addr) => {
-      http.get(`http://${event.proxyURL}/?ss_server_addr${addr}`, (res) => {
-        if (res.statusCode === 200) return print('http_request', 'success')
-        print('http_request', `bad status code error: ${res.statusCode}`)
+      http.get(`http://${event.proxyURL}/?ss_server_addr=${addr}`, ({ statusCode }) => {
+        if (statusCode === 200) return print('http_request', 'success')
+        print('http_request', `bad status code error: ${statusCode}`)
       })
     })
     .catch((error) => print('ngrok_error', error))
@@ -51,31 +50,22 @@ function addLogging (emitter, name) {
   return emitter
 }
 
-function addToken (token) {
+function getNgrokAddress (port, token) {
   return new Promise(function (resolve, reject) {
-    const ngrok = addLogging(spawn('./bin/ngrok', ['authtoken', token]), 'ngrok_auth')
-
-    ngrok.stdout.on('data', resolve)
-    ngrok.stderr.on('data', reject)
-    ngrok.on('close', reject)
-  })
-}
-
-function getNgrokAddress (port) {
-  return new Promise(function (resolve, reject) {
-    const ngrok = addLogging(spawn('./bin/ngrok', [
-      'tcp', port,
+    const ngrok = spawn('./bin/ngrok', [
+      'tcp',
+      port,
       '-log=stdout',
       '--log-level=debug',
-      '--region=au'
-    ]), 'ngrok')
+      '--region=au',
+      `--authtoken=${token}`
+    ])
 
     ngrok.stdout.on('data', function (data) {
       const dataString = data.toString()
       if (!dataString.includes('tcp://')) return
 
       const i = dataString.lastIndexOf('tcp://')
-
       return resolve(dataString.slice(i + 'tcp://'.length, i + dataString.slice(i).indexOf(' ')))
     })
     ngrok.stderr.on('data', reject)
