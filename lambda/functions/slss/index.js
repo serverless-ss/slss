@@ -8,7 +8,8 @@ const EVENT_REQUIRED_KEYS = [
   'method',
   'password',
   'proxyHost',
-  'proxyPort'
+  'proxyPort',
+  'ngrokToken'
 ]
 
 exports.handle = function (event, context, callback) {
@@ -18,16 +19,20 @@ exports.handle = function (event, context, callback) {
   // Keep event loop rolling
   setTimeout(function () { callback(null) }, MAX_DELAY)
 
+  addLogging(spawn('./bin/ngrok', ['authtoken', event.ngrokToken]), 'ngrok_auth')
+
   const ssOptions = ['-k', event.password, '-m', event.method, '-p', event.port]
   addLogging(spawn('./bin/shadowsocks_server', ssOptions), 'ss_server')
-  addLogging(spawn('./bin/ngrok', ['tcp', event.port]), 'ngrok')
 
-  http.get(`http://${event.proxyHost}:${event.proxyPort}/`, function (res) {
-    if (res.statusCode !== 200) {
-      print('http_request', `bad status code error: ${res.statusCode}`)
-    }
-    print('http_request', 'success')
-  })
+  getNgrokAddress(addLogging(spawn('./bin/ngrok', ['tcp', event.port]), 'ngrok'))
+    .then(function (addr) {
+      http.get(`http://${event.proxyHost}:${event.proxyPort}/?ss_server_addr${addr}`, function (res) {
+        if (res.statusCode !== 200) {
+          print('http_request', `bad status code error: ${res.statusCode}`)
+        }
+        print('http_request', 'success')
+      })
+    })
 }
 
 function validateEvent (event) {
@@ -47,4 +52,19 @@ function addLogging (emitter, name) {
   emitter.on('close', (code) => print(`${name} close`, code))
 
   return emitter
+}
+
+function getNgrokAddress (ngrok) {
+  return new Promise(function (resolve, reject) {
+    ngrok.on('data', function (data) {
+      const dataString = data.toString()
+      if (!dataString.includes('tcp://')) return
+
+      const i = dataString.lastIndexOf('tcp://')
+
+      return resolve(dataString.slice(i + 'tcp://'.length, i + dataString.slice(i).indexOf(' ')))
+    })
+
+    ngrok.on('error', reject)
+  })
 }
