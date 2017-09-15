@@ -6,8 +6,6 @@
     "role": "YOUR_IAMROLE"
   },
   "shadowsocks": {
-    "server_addr": "SERVER_ADDR",
-    "server_port": "SERVER_PORT",
     "local_port": "LOCAL_PORT",
     "timeout": 300,
     "method": "aes-128-cfb",

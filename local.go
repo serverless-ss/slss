@@ -72,7 +72,7 @@ func Init(config *Config, funcConfig *FuncConfig) {
 		if err != nil {
 			PrintErrorAndExit(err)
 		}
-		log.Info("[slss] Local ss restarted => localhost:", config.Shadowsocks.LocalPort)
+		log.Info("[slss] Local ss client started at 127.0.0.1:", config.Shadowsocks.LocalPort)
 	}
 }
 
@@ -107,7 +107,7 @@ func UploadFunc(executor *APEXCommandExecutor) error {
 // RequestRemoteFunc sends a request to the slss function in AWS lambda
 func RequestRemoteFunc(executor *APEXCommandExecutor, proxyAddr string) error {
 	lambdaMessage, err := json.Marshal(LambdaShadowSocksConfig{
-		Port:       executor.Config.Shadowsocks.ServerPort,
+		Port:       "10808",
 		Method:     executor.Config.Shadowsocks.Method,
 		Password:   executor.Config.Shadowsocks.Password,
 		ProxyURL:   proxyAddr,

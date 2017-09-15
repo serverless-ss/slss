@@ -20,12 +20,10 @@ type awsConfig struct {
 
 // Shadowsocks configuration
 type shadowsocksConfig struct {
-	ServerAddr string `json:"server_addr"`
-	ServerPort string `json:"server_port"`
-	LocalPort  string `json:"local_port"`
-	Timeout    int    `json:"timeout"`
-	Method     string `json:"method"`
-	Password   string `json:"password"`
+	LocalPort string `json:"local_port"`
+	Timeout   int    `json:"timeout"`
+	Method    string `json:"method"`
+	Password  string `json:"password"`
 }
 
 type ngrokConfig struct {
