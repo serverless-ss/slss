@@ -1,1 +1,6 @@
-{"name":"slss-lambda","description":"slss AWS Lambda functions","role":"arn:aws:iam::337337678271:role/service-role/Master","memory":512}
+{
+  "name": "slss-lambda",
+  "description": "slss AWS Lambda functions",
+  "role": "",
+  "memory": 512
+}
