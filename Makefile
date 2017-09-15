@@ -36,7 +36,7 @@ clean_up:
 install: ensure_all
 	@go build -o ./bin/slss ./cmd/main.go
 
-start: install
+start:
 	@./bin/slss -c ./config.json
 
 .PHONY: test ensure_apex ensure_shadowsocks ensure_ngrok ensure_all install start clean_up
