@@ -8,11 +8,14 @@ import (
 	"github.com/pkg/errors"
 )
 
+const projectConfigPath = "./lambda/project.json"
+
 // Amazon AWS configuration
 type awsConfig struct {
 	AccessKeyID     string `json:"access_key_id"`
 	SecretAccessKey string `json:"secret_access_key"`
 	Region          string `json:"region"`
+	Role            string `json:"role"`
 }
 
 // Shadowsocks configuration
@@ -55,6 +58,14 @@ type FuncConfig struct {
 	Timeout     int    `json:"timeout"`
 }
 
+// ProjectConfig represents the apex project configuration
+type ProjectConfig struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Role        string `json:"role"`
+	Memory      int    `json:"memory"`
+}
+
 // LoadFuncConfig loads the lambda function configuration from a specified path
 func LoadFuncConfig(path string) (*FuncConfig, error) {
 	var config = new(FuncConfig)
@@ -73,6 +84,29 @@ func LoadFuncConfig(path string) (*FuncConfig, error) {
 	}
 
 	return config, nil
+}
+
+// UpdateProjectConfigRole updates the "role" filed in apex project
+// configuration
+func UpdateProjectConfigRole(role string) error {
+	var config = new(ProjectConfig)
+
+	content, err := ioutil.ReadFile(projectConfigPath)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	if err := json.Unmarshal(content, config); err != nil {
+		return errors.WithStack(err)
+	}
+
+	config.Role = role
+	contentToUpdate, err := json.Marshal(config)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	return ioutil.WriteFile(projectConfigPath, []byte(contentToUpdate), 0644)
 }
 
 // LoadConfig loads the configuration object from a specified path
@@ -103,12 +137,19 @@ func LoadConfig(path string) (*Config, error) {
 		config.AWS.Region = os.Getenv("AWS_REGION")
 	}
 
-	if config.AWS.AccessKeyID == "" || config.AWS.SecretAccessKey == "" || config.AWS.Region == "" {
+	if config.AWS.AccessKeyID == "" ||
+		config.AWS.SecretAccessKey == "" ||
+		config.AWS.Region == "" ||
+		config.AWS.Role == "" {
 		return nil, errors.New("empty AWS configuration")
 	}
 
 	if config.Ngrok.AuthToken == "" {
 		return nil, errors.New("empty ngrok configuration")
+	}
+
+	if config.LocalServerPort == "" {
+		return nil, errors.New("empty local_server_port configuration")
 	}
 
 	return config, nil

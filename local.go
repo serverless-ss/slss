@@ -44,11 +44,13 @@ func Init(config *Config, funcConfig *FuncConfig) {
 	log.Info("[slss] Ngrox address: ", proxyAddr)
 
 	go func() {
+		log.Info("[slss] Request lambda function...")
 		if err := RequestRemoteFunc(apexExecutor, proxyAddr); err != nil {
 			log.Errorln(err)
 		}
 
 		for range time.Tick(interval) {
+			log.Info("[slss] Request lambda function...")
 			if err := RequestRemoteFunc(apexExecutor, proxyAddr); err != nil {
 				log.Errorln(err)
 			}
@@ -57,8 +59,9 @@ func Init(config *Config, funcConfig *FuncConfig) {
 
 	var localCliCmd *exec.Cmd
 	for remoteProxyAddr := range remoteProxyAddrChan {
-		log.Info("[slss] remote proxy address : ", remoteProxyAddr)
+		log.Info("[slss] Remote proxy address: ", remoteProxyAddr)
 
+		log.Info("[slss] Restarting local ss client...")
 		if localCliCmd != nil {
 			if err := localCliCmd.Process.Kill(); err != nil {
 				PrintErrorAndExit(err)
@@ -69,6 +72,7 @@ func Init(config *Config, funcConfig *FuncConfig) {
 		if err != nil {
 			PrintErrorAndExit(err)
 		}
+		log.Info("[slss] Local ss restarted => localhost:", config.Shadowsocks.LocalPort)
 	}
 }
 

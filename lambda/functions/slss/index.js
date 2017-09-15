@@ -2,24 +2,25 @@
 const { spawn } = require('child_process')
 const http = require('http')
 
+const TCP_PREFIX = 'tcp://'
 const MAX_DELAY = 2147483647
-const EVENT_REQUIRED_KEYS = [
-  'port',
-  'method',
-  'password',
-  'proxyURL',
-  'ngrokToken'
-]
+const EVENT_REQUIRED_KEYS = ['port', 'method', 'password', 'proxyURL', 'ngrokToken']
 
 exports.handle = function (event, context, callback) {
   if (validateEvent(event)) print('event', event)
   else return callback(new Error(`Invalid event: ${JSON.stringify(event)}`))
 
   // Keep event loop rolling
-  setTimeout(() => callback(null), MAX_DELAY)
+  setTimeout(callback, MAX_DELAY)
 
-  const ssOptions = ['-k', event.password, '-m', event.method, '-p', event.port]
-  addLogging(spawn('./bin/shadowsocks_server', ssOptions), 'ss_server')
+  addLogging(spawn('./bin/shadowsocks_server', [
+    '-k',
+    event.password,
+    '-m',
+    event.method,
+    '-p',
+    event.port
+  ]), 'ss_server')
 
   getNgrokAddress(event.port, event.ngrokToken)
     .then((addr) => {
@@ -63,10 +64,10 @@ function getNgrokAddress (port, token) {
 
     ngrok.stdout.on('data', function (data) {
       const dataString = data.toString()
-      if (!dataString.includes('tcp://')) return
+      if (!dataString.includes(TCP_PREFIX)) return
 
-      const i = dataString.lastIndexOf('tcp://')
-      return resolve(dataString.slice(i + 'tcp://'.length, i + dataString.slice(i).indexOf(' ')))
+      const i = dataString.lastIndexOf(TCP_PREFIX)
+      return resolve(dataString.slice(i + TCP_PREFIX.length, i + dataString.slice(i).indexOf(' ')))
     })
     ngrok.stderr.on('data', reject)
     ngrok.on('close', reject)

@@ -2,7 +2,8 @@
   "AWS": {
     "access_key_id": "YOUR_AWS_ACCESS_KEY_ID",
     "secret_access_key": "YOUR_AWS_SECRET_ACCESS_KEY",
-    "region": "YOUR_AWS_REGION"
+    "region": "YOUR_AWS_REGION",
+    "role": "YOUR_IAMROLE"
   },
   "shadowsocks": {
     "server_addr": "SERVER_ADDR",

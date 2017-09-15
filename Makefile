@@ -33,4 +33,7 @@ clean_up:
 	@rm -rf ./shadowsocks-go
 	@rm -rf ./lambda/functions/slss/bin
 
+install: ensure_all
+	go build -o ./bin/slss ./cmd/main.go
+
 .PHONY: test ensure_apex ensure_shadowsocks ensure_ngrok ensure_all install clean_up

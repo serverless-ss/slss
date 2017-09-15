@@ -45,5 +45,9 @@ func main() {
 		"timeout":     funcConfig.Timeout,
 	}).Info("[slss] Lambda function config:")
 
+	if err := slss.UpdateProjectConfigRole(config.AWS.Role); err != nil {
+		slss.PrintErrorAndExit(err)
+	}
+
 	slss.Init(config, funcConfig)
 }
