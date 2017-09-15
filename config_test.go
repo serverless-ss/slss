@@ -11,7 +11,7 @@ type ConfigSuite struct {
 }
 
 func (s *ConfigSuite) TestLoadConfig() {
-	config, err := LoadConfig("./config.example.json")
+	config, err := LoadConfig("./config.json")
 
 	s.Nil(err)
 	s.Equal(config.AWS.AccessKeyID, "YOUR_AWS_ACCESS_KEY_ID")

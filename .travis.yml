@@ -8,5 +8,4 @@ before_install:
   - go get -t -v ./...
   - go get github.com/mattn/goveralls
 script:
-  - go test -coverprofile=slss.coverprofile
-  - goveralls -coverprofile=slss.coverprofile -service=travis-ci
+  - go test -v
