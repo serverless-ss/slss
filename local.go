@@ -45,15 +45,19 @@ func Init(config *Config, funcConfig *FuncConfig) {
 
 	go func() {
 		log.Info("[slss] Request lambda function...")
-		if err := RequestRemoteFunc(apexExecutor, proxyAddr); err != nil {
-			log.Errorln(err)
-		}
-
-		for range time.Tick(interval) {
-			log.Info("[slss] Request lambda function...")
+		go func() {
 			if err := RequestRemoteFunc(apexExecutor, proxyAddr); err != nil {
 				log.Errorln(err)
 			}
+		}()
+
+		for range time.Tick(interval) {
+			log.Info("[slss] Request lambda function...")
+			go func() {
+				if err := RequestRemoteFunc(apexExecutor, proxyAddr); err != nil {
+					log.Errorln(err)
+				}
+			}()
 		}
 	}()
 
