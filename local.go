@@ -22,7 +22,7 @@ const (
 
 // Init starts the slss
 func Init(config *Config, funcConfig *FuncConfig) {
-	interval, err := time.ParseDuration(fmt.Sprintf("%vs", funcConfig.Timeout-10))
+	interval, err := time.ParseDuration(fmt.Sprintf("%vs", funcConfig.Timeout-15))
 	if err != nil {
 		PrintErrorAndExit(err)
 	}
@@ -44,7 +44,7 @@ func Init(config *Config, funcConfig *FuncConfig) {
 	log.Info("[slss] Ngrox address: ", proxyAddr)
 
 	go func() {
-		log.Info("[slss] Request lambda function...")
+		log.Info("[slss] Requesting lambda function...")
 		go func() {
 			if err := RequestRemoteFunc(apexExecutor, proxyAddr); err != nil {
 				log.Errorln(err)
@@ -52,7 +52,7 @@ func Init(config *Config, funcConfig *FuncConfig) {
 		}()
 
 		for range time.Tick(interval) {
-			log.Info("[slss] Request lambda function...")
+			log.Info("[slss] Requesting lambda function...")
 			go func() {
 				if err := RequestRemoteFunc(apexExecutor, proxyAddr); err != nil {
 					log.Errorln(err)
